@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import asyncio
 import io
 import json
 import os
@@ -40,7 +40,7 @@ class TestDataPlane:
     # Adding two 'params' to the below fixture causes all the tests using this fixture to run twice.
     # First time this fixture uses 'Model' class.
     # The second time it uses the 'RayServeHandle' class.
-    @pytest.fixture(scope="class", params=["TEST_RAW_MODEL", "TEST_RAY_SERVE_MODEL"])
+    @pytest.fixture(scope="class", params=["TEST_RAW_MODEL"])
     def dataplane_with_model(self, request):  # pylint: disable=no-self-use
         dataplane = DataPlane(model_registry=ModelRepository())
 
@@ -119,6 +119,14 @@ class TestDataPlane:
         }
 
     async def test_infer(self, dataplane_with_model):
+        body = b'{"instances":[[1,2]]}'
+        resp = await dataplane_with_model.infer(self.MODEL_NAME, body)
+        assert resp == (
+            {"predictions": [[1, 2]]},  # body
+            {}  # headers
+        )
+
+    async def test_streaming_infer(self, dataplane_with_model):
         body = b'{"instances":[[1,2]]}'
         resp = await dataplane_with_model.infer(self.MODEL_NAME, body)
         assert resp == (

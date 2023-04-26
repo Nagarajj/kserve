@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import types
 from typing import Optional, Union, Dict, List
 
 from fastapi import Request, Response
+from sse_starlette import EventSourceResponse
 
 from kserve.errors import ModelNotReady
 from ..dataplane import DataPlane
@@ -68,6 +70,8 @@ class V1Endpoints:
         headers = dict(request.headers.items())
         response, response_headers = await self.dataplane.infer(model_name=model_name, body=body, headers=headers)
 
+        if isinstance(response, types.AsyncGeneratorType):
+            return EventSourceResponse(response)
         if not isinstance(response, dict):
             return Response(content=response, headers=response_headers)
         return response
