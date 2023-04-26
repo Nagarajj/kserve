@@ -85,7 +85,7 @@ class DummyModel(Model):
             yield dict(data=i)
 
     async def predict(self, request, headers=None):
-        events = request["events"] if "events" in request else False
+        events =  request["events"] if isinstance(request, dict) and "events" in request else False
         if events:
             generator = self.numbers(1, 5)
             return generator
