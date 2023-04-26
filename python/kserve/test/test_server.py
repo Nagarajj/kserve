@@ -255,8 +255,9 @@ class TestTFHttpServer:
 
     def test_predict_event_streams(self, http_server_client):
         with httpx_sse.connect_sse(http_server_client, "POST", '/v1/models/TestModel:predict', data=b'{"instances":[[1,2]], "events": "True"}') as event_source:
-            for sse in event_source.iter_sse():
+            for i, sse in enumerate(event_source.iter_sse()):
                 print(sse.event, sse.data, sse.id, sse.retry)
+                assert i+1 == int(sse.data)
 
     def test_infer(self, http_server_client):
         input_data = b'{"inputs": [{"name": "input-0","shape": [1, 2],"datatype": "INT32","data": [[1,2]]}]}'
